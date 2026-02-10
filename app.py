@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import pickle
 import plotly.express as px
+import nltk
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
 
 # --- INITIALIZATION & THEME ---
@@ -354,4 +355,5 @@ with tab5:
         st.write("Your CSV must contain the following columns:")
         st.code("tenure, MonthlyCharges, Contract, Ticket_Text")
         st.caption("Note: Contract values should be 0 (Month-to-month), 1 (One year), or 2 (Two year).")
+
 
