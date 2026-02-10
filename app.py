@@ -6,6 +6,14 @@ from nltk.sentiment.vader import SentimentIntensityAnalyzer
 
 # --- INITIALIZATION & THEME ---
 st.set_page_config(page_title="SentinelAI", layout="wide", page_icon="🛡️", initial_sidebar_state="collapsed")
+
+@st.cache_resource # This ensures it only downloads once per session
+def initialize_nltk():
+    try:
+        nltk.data.find('sentiment/vader_lexicon.zip')
+    except LookupError:
+        nltk.download('vader_lexicon')
+
 sid = SentimentIntensityAnalyzer()
 
 # Custom CSS for a "SaaS" look
@@ -346,3 +354,4 @@ with tab5:
         st.write("Your CSV must contain the following columns:")
         st.code("tenure, MonthlyCharges, Contract, Ticket_Text")
         st.caption("Note: Contract values should be 0 (Month-to-month), 1 (One year), or 2 (Two year).")
+
