@@ -14,6 +14,7 @@ def initialize_nltk():
         nltk.data.find('sentiment/vader_lexicon.zip')
     except LookupError:
         nltk.download('vader_lexicon')
+initialize_nltk()
 
 sid = SentimentIntensityAnalyzer()
 
@@ -355,5 +356,6 @@ with tab5:
         st.write("Your CSV must contain the following columns:")
         st.code("tenure, MonthlyCharges, Contract, Ticket_Text")
         st.caption("Note: Contract values should be 0 (Month-to-month), 1 (One year), or 2 (Two year).")
+
 
 
