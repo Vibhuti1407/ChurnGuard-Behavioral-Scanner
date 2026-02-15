@@ -2,8 +2,10 @@ import streamlit as st
 import pandas as pd
 import pickle
 import plotly.express as px
-import nltk
+import shap
+import matplotlib.pyplot as plt
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
+import nltk
 
 # --- INITIALIZATION & THEME ---
 st.set_page_config(page_title="SentinelAI", layout="wide", page_icon="🛡️", initial_sidebar_state="collapsed")
@@ -73,27 +75,24 @@ st.markdown("""
 # Load model (make sure you've run your training script first)
 @st.cache_resource
 def load_assets():
-    try:
-        with open('model.pkl', 'rb') as f:
-            model = pickle.load(f)
-        with open('metrics.pkl', 'rb') as f:
-            metrics = pickle.load(f)
-        return model, metrics
-    except FileNotFoundError:
-        # If files aren't found, return None instead of crashing
-        return None, None
+    with open('model.pkl', 'rb') as f:
+        return pickle.load(f)
 
 # Assign variables
-model, metrics = load_assets()
+assets = load_assets()
+model = assets['model']
+metrics = assets['metrics']
+X_train = assets['X_train']
+sid = SentimentIntensityAnalyzer()
 
 # Graceful Exit if files are missing
-if model is None or metrics is None:
+if model is None:
     st.error("🚨 **System Error: Assets Not Found**")
     st.warning("The app requires both `model.pkl` and `metrics.pkl` to function.")
     st.info("Run your `train_model.py` script to generate these files.")
     st.stop()
 
-st.title("🛡️ SentinelAI")
+st.title("🛡️ SentinelAI: Behavioral Risk Engine")
 
 # --- SIDEBAR CONFIGURATION ---
 with st.sidebar:
@@ -124,6 +123,79 @@ with st.sidebar:
         st.button("Clear Cache", type="secondary")
         st.button("Export Logs", type="secondary")
 
+def get_advanced_playbook(prob, charges, sentiment, contract):
+    """Categorizes churn drivers and returns a specific business playbook."""
+    if prob > 0.6:
+        if sentiment < -0.3:
+            return {
+                "title": "🚨 Service Recovery Protocol",
+                "driver": "Negative Sentiment",
+                "action": "Immediate 24h retention callback by Support Lead.",
+                "offer": "Issue a 1-month service credit + technical audit."
+            }
+        elif contract == 0:
+            return {
+                "title": "🚨 Contract Migration Strategy",
+                "driver": "Contract Flexibility",
+                "action": "Flag for Sales 'Lock-in' campaign.",
+                "offer": "Offer 20% discount on a 1-year commitment."
+            }
+        else:
+            return {
+                "title": "🚨 High-Value Save Plan",
+                "driver": "Pricing/General",
+                "action": "Manual account review required.",
+                "offer": "Propose a lower-tier plan down-sell."
+            }
+    elif 0.3 < prob <= 0.6:
+        return {
+            "title": "⚠️ Engagement Campaign",
+            "driver": "Moderate Risk",
+            "action": "Automated re-engagement email sequence.",
+            "offer": "Send educational 'Feature Spotlight' content."
+        }
+    return {
+        "title": "✅ Loyalty Maintenance",
+        "driver": "Healthy Account",
+        "action": "Standard communication cycle.",
+        "offer": "Target for Referral Program invitation."
+    }
+
+#STRATEGY SIMULATOR (using Fragments to prevent full-page refresh)
+@st.fragment
+def strategy_simulator_fragment(original_risk, charges, tenure, contract_val, sentiment):
+    st.markdown("---")
+    st.subheader("📊 Strategy Simulator")
+    
+    # Ensure the slider has a unique key
+    discount = st.slider("Apply Retention Discount ($)", 0, 100, 0, key="sim_slider")
+    
+    # Calculate simulated charges
+    sim_charges = float(charges - discount)
+    
+    # RE-RUN PREDICTION
+    # We must match the EXACT column names and order used during training
+    sim_features = pd.DataFrame([[
+        float(tenure), 
+        sim_charges, 
+        int(contract_val), 
+        float(sentiment)
+    ]], columns=['tenure', 'MonthlyCharges', 'Contract', 'sentiment_score'])
+    
+    # Get the new probability
+    new_prob = model.predict_proba(sim_features)[0][1]
+    diff = new_prob - original_risk
+    
+    # Display the result
+    c1, c2 = st.columns(2)
+    c1.metric("Simulated Monthly Bill", f"${sim_charges:.2f}")
+    c2.metric("New Risk Score", f"{new_prob*100:.1f}%", delta=f"{diff*100:.1f}%", delta_color="inverse")
+    
+    if new_prob < original_risk:
+        st.success(f"✅ Retention Strategy Effective: Risk reduced by {abs(diff)*100:.1f}%")
+    else:
+        st.warning("⚠️ This discount level is not enough to change the customer's risk profile.")
+
 
 # Main Navigation using Tabs at the top of the page
 tab1, tab2, tab3, tab4, tab5= st.tabs(["🏠 Home","📊 Overview", "👤 Individual Check", "📂 Bulk Processing", "❓ System Help"], width="stretch")
@@ -136,7 +208,7 @@ with tab1:
         st.markdown(f"""
         <h4></h4>
         <h3>The Mission</h3>
-        <p style='font-size:20px; color:gray;'><strong>ChurnGuard AI</strong> is an end-to-end decision-support tool designed to reduce customer attrition in the telecommunications industry. 
+        <p style='font-size:20px; color:gray;'><strong>SentinelAI</strong> is an end-to-end decision-support tool designed to reduce customer attrition in the telecommunications industry. 
         By fusing <strong>behavioral analytics</strong> with <strong>Natural Language Processing (NLP)</strong>, it identifies at-risk customers before they churn.<p>
         <h3></h3>
         """, unsafe_allow_html=True)
@@ -151,7 +223,7 @@ with tab1:
         <h4>3. XGBoost Model</h4>
         <p style='font-size:18px; color:gray; padding-left:30px;'>A Gradient Boosted Decision Tree model trained on over 7,000 records to predict churn probability.</p>
         <h5></h5>
-        """, unsafe_allow_html=True)  
+        """, unsafe_allow_html=True) 
        
     with column2:
         st.markdown("""
@@ -246,40 +318,46 @@ with tab3:
             predict_btn = st.button("Generate Risk Score", use_container_width=True, type="primary")
 
     with col_result:
-        if predict_btn:
-            # Logic
+        if predict_btn:  
+            # Calculation
             sentiment = sid.polarity_scores(ticket)['compound']
             contract_map = {"Month-to-Month": 0, "One Year": 1, "Two Year": 2}
             features = pd.DataFrame([[tenure, charges, contract_map[contract], sentiment]], 
                                     columns=['tenure', 'MonthlyCharges', 'Contract', 'sentiment_score'])
             risk_proba = model.predict_proba(features)[0][1]
             
-            # Professional Output Display
+            # Save to state so the fragment can access it without losing it on rerun
+            st.session_state.last_risk = risk_proba
+            
+            rev_at_risk = charges * risk_proba
+
+            # Visual Display
             st.subheader("Analysis Summary")
             
             # Risk Gauge Simulation
-            color = "red" if risk_proba > 0.6 else "green"
+            color = "#EF4444" if risk_proba > 0.6 else "#F59E0B" if risk_proba > 0.3 else "#10B981"
             st.markdown(f"""
-                <div style="background-color: #303030; padding: 30px; border-radius: 15px; border-left: 10px solid {color}; box-shadow: 0px 4px 10px rgba(0,0,0,0.1);">
-                    <h1 style="margin:0; color:{color};">{risk_proba*100:.1f}%</h1>
-                    <p style="margin:0; font-size:25px; font-weight:bold;">Probability of Churn</p>
-                    <hr>
-                    <p style="font-size:17px"><b>Detected Sentiment:</b> {sentiment:.2f}</p>
-                    <p style="font-size:17px"><b>Status:</b> {"Action Required" if risk_proba > 0.6 else "Stable"}</p>
+                <div style="background-color: #111827; padding: 25px; border-radius: 12px; border-left: 10px solid {color};">
+                    <h1 style="margin:0; color:{color}; font-size:45px;">{risk_proba*100:.1f}%</h1>
+                    <p style="margin:0; color:white; font-size:20px; font-weight:bold;">Probability of Churn</p>
+                    <p style="color:#9CA3AF; margin-top:10px;"><b>Revenue at Risk:</b> ${rev_at_risk:.2f}</p>
                 </div>
             """, unsafe_allow_html=True)
             
+            # Playbook Suggestions
+            playbook = get_advanced_playbook(risk_proba, charges, sentiment, contract_map[contract])
+            
             st.write("")
-            with st.expander("🛠️ View Prescriptive Actions"):
+            with st.expander(f"🛠️ Playbook: {playbook['title']}", expanded=True):
+                st.write(f"**Primary Driver:** {playbook['driver']}")
+                st.info(f"**Recommended Action:** {playbook['action']}")
+                st.success(f"**Retention Offer:** {playbook['offer']}")
+                
                 if risk_proba > 0.6:
-                    st.error("🚨 **High Risk Alert**")
-                    st.write("- Flag account for 24h retention callback.")
-                    st.write("- Auto-generate 20% discount code.")
-                else:
-                    st.success("✅ **Healthy Account**")
-                    st.write("- Target for 'Family Plan' upsell.")
-                    st.write("- Send satisfaction survey.")
-
+                    st.button("📧 Send Pre-approved Offer Now")
+            
+            # Fragment-based simulator
+            strategy_simulator_fragment(risk_proba, charges, tenure, contract_map[contract], sentiment)
 
 with tab4:
     # Insert your Batch code here
@@ -292,48 +370,80 @@ with tab4:
     if uploaded_file is not None:
         df_batch = pd.read_csv(uploaded_file)
         
-        # Display Preview
-        st.subheader("Data Preview")
-        st.dataframe(df_batch.head(), use_container_width=True)
-        
-        if st.button("🚀 Run Bulk Intelligence", type="primary"):
-            with st.spinner('Analyzing patterns and sentiment...'):
-                # 2. Batch Sentiment Processing
-                # If the CSV has a 'Ticket_Text' column, analyze it; otherwise, assume neutral (0)
-                if 'Ticket_Text' in df_batch.columns:
-                    df_batch['sentiment_score'] = df_batch['Ticket_Text'].apply(
-                        lambda x: sid.polarity_scores(str(x))['compound']
+        # Validation Logic: Ensure required columns exist
+        required_cols = ['tenure', 'MonthlyCharges', 'Contract']
+        if not all(col in df_batch.columns for col in required_cols):
+            st.error(f"Critical Error: CSV is missing required columns: {required_cols}")
+        else:
+            st.subheader("📋 Data Preview")
+            st.dataframe(df_batch.head(3), use_container_width=True)
+            
+            if st.button("🚀 Execute Bulk Intelligence", type="primary", use_container_width=True):
+                with st.status("Processing Batch Intelligence...", expanded=True) as status:
+                    # 2. Sentiment Intelligence
+                    st.write("🔍 Extracting emotional context from support tickets...")
+                    if 'Ticket_Text' in df_batch.columns:
+                        df_batch['sentiment_score'] = df_batch['Ticket_Text'].apply(
+                            lambda x: sid.polarity_scores(str(x))['compound']
+                        )
+                    else:
+                        st.warning("Sentiment column missing. Standardizing to Neutral.")
+                        df_batch['sentiment_score'] = 0
+
+                    # 3. ML Inference
+                    st.write("🧠 Running predictive XGBoost models...")
+                    features = df_batch[['tenure', 'MonthlyCharges', 'Contract', 'sentiment_score']]
+                    df_batch['Churn_Probability'] = model.predict_proba(features)[:, 1]
+                    
+                    # 4. Financial Calculations
+                    # Revenue at Risk = Monthly Charge * Probability of leaving
+                    df_batch['Revenue_at_Risk'] = df_batch['MonthlyCharges'] * df_batch['Churn_Probability']
+                    
+                    df_batch['Risk_Level'] = df_batch['Churn_Probability'].apply(
+                        lambda x: 'CRITICAL' if x > 0.6 else ('WARNING' if x > 0.3 else 'STABLE')
                     )
-                else:
-                    st.warning("No 'Ticket_Text' column found. Defaulting sentiment to Neutral (0).")
-                    df_batch['sentiment_score'] = 0
+                    status.update(label="Batch Analysis Complete!", state="complete", expanded=False)
 
-                # 3. Model Prediction
-                # Ensure columns match the training features: tenure, MonthlyCharges, Contract, sentiment_score
-                features = df_batch[['tenure', 'MonthlyCharges', 'Contract', 'sentiment_score']]
-                df_batch['Churn_Probability'] = model.predict_proba(features)[:, 1]
-                df_batch['Risk_Level'] = df_batch['Churn_Probability'].apply(
-                    lambda x: 'Critical' if x > 0.6 else ('Warning' if x > 0.3 else 'Stable')
-                )
-
-                # 4. Results & Download
-                st.success("Analysis Complete!")
+                # --- 5. EXECUTIVE SUMMARY METRICS ---
+                st.write("")
+                st.subheader("📊 Executive Summary")
+                c1, c2, c3, c4 = st.columns(4)
                 
-                # Show results summary
-                #c1, c2 = st.columns(2)
-                fig_batch = px.histogram(df_batch, x='Churn_Probability', color='Risk_Level', 
-                                       title="Distribution of Risk across Batch",
-                                       color_discrete_map={'Critical': '#EF4444', 'Warning': '#F59E0B', 'Stable': '#10B981'})
-                st.plotly_chart(fig_batch, use_container_width=True)
+                total_rev_risk = df_batch['Revenue_at_Risk'].sum()
+                critical_count = len(df_batch[df_batch['Risk_Level'] == 'CRITICAL'])
+                avg_risk = df_batch['Churn_Probability'].mean()
+                
+                c1.metric("Total Revenue at Risk", f"${total_rev_risk:,.2f}", delta="Action Required", delta_color="inverse")
+                c2.metric("Critical Accounts", critical_count, help="Customers with >60% churn probability")
+                c3.metric("Avg. Churn Risk", f"{avg_risk:.1%}")
+                c4.metric("Batch Size", len(df_batch))
 
-                # Export Button
-                csv = df_batch.to_csv(index=False).encode('utf-8')
-                st.download_button(
-                    label="📥 Download Scored Report",
-                    data=csv,
-                    file_name='churn_risk_report.csv',
-                    mime='text/csv',
-                )
+                # --- 6. ADVANCED VISUALIZATION ---
+                col_chart1, col_chart2 = st.columns(2)
+                
+                with col_chart1:
+                    # Sunburst Chart: Relationship between Contract and Risk
+                    fig_sun = px.sunburst(df_batch, path=['Risk_Level', 'Contract'], values='MonthlyCharges',
+                                        color='Risk_Level',
+                                        color_discrete_map={'CRITICAL': '#EF4444', 'WARNING': '#F59E0B', 'STABLE': '#10B981'},
+                                        title="Revenue Distribution: Risk vs. Contract")
+                    st.plotly_chart(fig_sun, use_container_width=True)
+
+                with col_chart2:
+                    # Interactive Playbook Recommendations
+                    st.write("🛠️ **Batch Intervention Playbook**")
+                    with st.container(border=True):
+                        st.write(f"**Action 1:** Assign {critical_count} accounts to the 'Save Team'.")
+                        st.write(f"**Action 2:** Potential recovery: ${total_rev_risk * 0.4:,.2f} (Est. 40% success)")
+                        st.write("**Action 3:** 0-30% Risk customers are ready for Upsell campaigns.")
+                    csv = df_batch.to_csv(index=False).encode('utf-8')
+                    st.download_button(
+                        label="📥 Download Comprehensive Risk Report (CSV)",
+                        data=csv,
+                        file_name=f'SentinelAI_Report_{pd.Timestamp.now().strftime("%Y%m%d")}.csv',
+                        mime='text/csv',
+                        use_container_width=True
+                    )                
 
 with tab5:
     st.header("❓ System Help & Documentation")
@@ -356,6 +466,4 @@ with tab5:
         st.write("Your CSV must contain the following columns:")
         st.code("tenure, MonthlyCharges, Contract, Ticket_Text")
         st.caption("Note: Contract values should be 0 (Month-to-month), 1 (One year), or 2 (Two year).")
-
-
 
