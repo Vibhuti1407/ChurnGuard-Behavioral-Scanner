@@ -355,9 +355,8 @@ with tab3:
                 
                 if risk_proba > 0.6:
                     st.button("📧 Send Pre-approved Offer Now")
-            
-            # Fragment-based simulator
-            strategy_simulator_fragment(risk_proba, charges, tenure, contract_map[contract], sentiment)
+                    # Fragment-based simulator
+                    strategy_simulator_fragment(risk_proba, charges, tenure, contract_map[contract], sentiment)
 
 with tab4:
     # Insert your Batch code here
@@ -466,4 +465,5 @@ with tab5:
         st.write("Your CSV must contain the following columns:")
         st.code("tenure, MonthlyCharges, Contract, Ticket_Text")
         st.caption("Note: Contract values should be 0 (Month-to-month), 1 (One year), or 2 (Two year).")
+
 
