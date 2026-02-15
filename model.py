@@ -9,6 +9,7 @@ import nltk
 
 # Download VADER lexicon
 nltk.download('vader_lexicon')
+sid = SentimentIntensityAnalyzer()
 
 def prepare_hybrid_model():
     # 1. Load/Generate Datasets
@@ -20,57 +21,41 @@ def prepare_hybrid_model():
         'customerID': [f'CUST-{i}' for i in range(data_size)],
         'tenure': np.random.randint(1, 72, data_size),
         'MonthlyCharges': np.random.uniform(20, 120, data_size),
-        'Contract': np.random.choice([0, 1, 2], data_size), # 0: Month-to-month
-        'Ticket_Text': [
-            "Terrible service, I want to cancel", 
-            "I'm very happy with the speed", 
-            "The bill is too high, help me", 
-            "Connection is stable today"
-        ] * (data_size // 4)
+        'Contract': np.random.choice([0, 1, 2], data_size), 
+        'Ticket_Text': ["Terrible service", "Great speed", "Too expensive", "Stable"] * (data_size // 4)
     })
     
-    # 2. Extract Sentiment (The "Hybrid" Feature)
-    sid = SentimentIntensityAnalyzer()
+    # 2. Advanced Feature Engineering
     df['sentiment_score'] = df['Ticket_Text'].apply(lambda x: sid.polarity_scores(x)['compound'])
     
-    # 3. Create Target (Logic: Lower sentiment + low tenure = higher churn probability)
-    # We add a bit of noise so the model has something to actually "learn"
-    df['Churn'] = ((df['sentiment_score'] < 0) & (df['tenure'] < 24)).astype(int)
-    
-    # 4. Prepare Features and Target
+    # Define Ground Truth (Churn logic)
+    df['Churn'] = (
+        (df['MonthlyCharges'] > 95) | 
+        (df['sentiment_score'] < -0.3) | 
+        (df['Contract'] == 0) & (df['tenure'] < 10)
+    ).astype(int)    
+
+    # 3. Model Training
     X = df[['tenure', 'MonthlyCharges', 'Contract', 'sentiment_score']]
     y = df['Churn']
-    
-    # Split the data into Training and Testing sets
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
     
-    # 5. Train Model
-    model = XGBClassifier(n_estimators=100, max_depth=4, learning_rate=0.1, use_label_encoder=False, eval_metric='logloss')
+    model = XGBClassifier(n_estimators=100, max_depth=4, learning_rate=0.1)
     model.fit(X_train, y_train)
     
-    # 6. Calculate Metrics (Must happen AFTER training)
-    y_pred = model.predict(X_test)
-    y_probs = model.predict_proba(X_test)[:, 1]
-
-    # Convert to standard floats to ensure pickle works smoothly
-    metrics_data = {
-        "auc": float(roc_auc_score(y_test, y_probs)),
-        "precision": float(precision_score(y_test, y_pred)),
-        "recall": float(recall_score(y_test, y_pred))
+    # 4. Save Artifacts (Including X_train for SHAP)
+    artifacts = {
+        "model": model,
+        "metrics": {
+            "auc": float(roc_auc_score(y_test, model.predict_proba(X_test)[:, 1])),
+            "precision": float(precision_score(y_test, model.predict(X_test))),
+            "recall": float(recall_score(y_test, model.predict(X_test)))
+        },
+        "X_train": X_train # Essential for SHAP explainability
     }
     
-    # 7. Save Artifacts
     with open('model.pkl', 'wb') as f:
-        pickle.dump(model, f)
-    with open('metrics.pkl', 'wb') as f:
-        pickle.dump(metrics_data, f)
-
-    print("--- Training Results ---")
-    print(f"AUC: {metrics_data['auc']:.2f}")
-    print(f"Precision: {metrics_data['precision']:.2f}")
-    print(f"Recall: {metrics_data['recall']:.2f}")
-    print("------------------------")
-    print("Hybrid Model and Metrics Saved Successfully!")
+        pickle.dump(artifacts, f)
 
 if __name__ == "__main__":
     prepare_hybrid_model()
