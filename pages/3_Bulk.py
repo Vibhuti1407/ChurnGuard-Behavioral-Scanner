@@ -3,9 +3,9 @@ import pandas as pd
 import pickle
 import plotly.express as px
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
-from analytics import inject_ga
+from analytics import track_page_view
 
-inject_ga(page_title="ChurnSentinel - Bulk Batch Processing", page_path="/bulk-processing")
+track_page_view(page_title="ChurnSentinel - Bulk Batch Processing", page_path="/bulk-processing")
 st.markdown("<style>[data-testid='stSidebarNav'] { display: none !important; }</style>", unsafe_allow_html=True)
 
 home_page = st.Page("app.py")
