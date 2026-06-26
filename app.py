@@ -101,8 +101,6 @@ metrics = assets['metrics']
 st.title("🛡️ ChurnSentinel: Behavioral Risk Engine")
 
 # --- DEFINING PAGES FOR NAVIGATION ---
-# Instead of passing "app.py" into itself (which causes a loading loop), 
-# we point the Home page to a Python function inside this file!
 def render_home():
     inject_ga(page_title="ChurnSentinel - Home", page_path="/home")
    
@@ -128,10 +126,7 @@ def render_home():
     with column2:
         st.markdown("""
             <style>
-                /* Target the div containing the image using data-testid for better stability */
                 div[data-testid="stImage"] {
-                    /*padding: 20px;  Adds 20px padding to all sides */
-                    /* Or specify individual sides: */
                     padding-top: 10px;
                     padding-bottom: 10px; 
                     padding-left: 100px;
