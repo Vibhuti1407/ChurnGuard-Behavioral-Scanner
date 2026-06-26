@@ -1,7 +1,7 @@
 import streamlit as st
 from analytics import inject_ga
 
-inject_ga(page_title="SentinelAI - Help Documentation", page_path="/help")
+inject_ga(page_title="ChurnSentinel - Help Documentation", page_path="/help")
 st.markdown("<style>[data-testid='stSidebarNav'] { display: none !important; }</style>", unsafe_allow_html=True)
 
 home_page = st.Page("app.py")
