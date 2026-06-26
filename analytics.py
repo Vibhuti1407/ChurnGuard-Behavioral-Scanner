@@ -1,6 +1,7 @@
 import streamlit as st
 import uuid
 import requests
+import time
 
 def track_page_view(page_title: str):
     api_secret = "A2DX9eAyS6eSSFGR1I8ZQQ" 
@@ -9,6 +10,9 @@ def track_page_view(page_title: str):
     # Track unique user sessions locally using streamlit session state
     if "ga_client_id" not in st.session_state:
         st.session_state.ga_client_id = str(uuid.uuid4())
+
+    if "ga_session_id" not in st.session_state:
+        st.session_state.ga_session_id = str(int(time.time()))
         
     # Track the active viewed tab in state to ensure we only send one hit per tab change click
     if "last_tracked_page" not in st.session_state:
@@ -24,7 +28,8 @@ def track_page_view(page_title: str):
                 "name": "page_view",
                 "params": {
                     "page_title": page_title,
-                    "engagement_time_msec": "1"
+                    "session_id": st.session_state.ga_session_id,
+                    "engagement_time_msec": "100"
                 }
             }]
         }
