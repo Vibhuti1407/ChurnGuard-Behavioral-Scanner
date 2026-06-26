@@ -1,9 +1,7 @@
-# analytics.py
 import streamlit as st
 import streamlit.components.v1 as components
 
 def inject_ga(page_title, page_path):
-    # REPLACE WITH YOUR ACTUAL GA4 MEASUREMENT ID (e.g., G-12345ABCDE)
     GA_MEASUREMENT_ID = "G-PB79XNJY9X" 
     
     ga_js = f"""
