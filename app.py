@@ -7,7 +7,7 @@ import nltk
 from analytics import inject_ga  
 
 # --- INITIALIZATION & THEME ---
-st.set_page_config(page_title="SentinelAI", layout="wide", page_icon="🛡️", initial_sidebar_state="collapsed")
+st.set_page_config(page_title="ChurnSentinel", layout="wide", page_icon="🛡️", initial_sidebar_state="collapsed")
 
 @st.cache_resource 
 def initialize_nltk():
@@ -76,7 +76,7 @@ st.markdown("""
         padding-top: 0px !important;
     }
     div[data-testid="stHorizontalBlock"] a[data-testid="stPageLink"] p {
-        font-size: 16px !important; 
+        font-size: 16px !important; /* <--- Change this line */
         font-weight: 500 !important;
     }
     </style>
@@ -98,18 +98,20 @@ if assets is None:
 
 metrics = assets['metrics']
 
-st.title("🛡️ SentinelAI: Behavioral Risk Engine")
+st.title("🛡️ ChurnSentinel: Behavioral Risk Engine")
 
 # --- DEFINING PAGES FOR NAVIGATION ---
+# Instead of passing "app.py" into itself (which causes a loading loop), 
+# we point the Home page to a Python function inside this file!
 def render_home():
-    inject_ga(page_title="SentinelAI - Home", page_path="/home")
+    inject_ga(page_title="ChurnSentinel - Home", page_path="/home")
    
     column1, column2 = st.columns([0.5,0.5])
     with column1: 
         st.markdown("""
         <p></p>
         <h2>The Mission</h2>
-        <p style='font-size:20px; color:gray;'><strong>SentinelAI</strong> is an end-to-end decision-support tool designed to reduce customer attrition in the telecommunications industry. 
+        <p style='font-size:20px; color:gray;'><strong>ChurnSentinel</strong> is an end-to-end decision-support tool designed to reduce customer attrition in the telecommunications industry. 
         By fusing <strong>behavioral analytics</strong> with <strong>Natural Language Processing (NLP)</strong>, it identifies at-risk customers before they churn.<p><h4></h4>
         """, unsafe_allow_html=True)
 
@@ -164,7 +166,7 @@ st.divider()
 with st.sidebar:
     st.markdown("""
         <div style="text-align: center; padding-bottom: 10px;">
-            <h1 style='color: #60A5FA; font-size: 28px; margin-bottom: 0;'>🛡️ SentinelAI</h1>
+            <h1 style='color: #60A5FA; font-size: 28px; margin-bottom: 0;'>🛡️ ChurnSentinel</h1>
             <p style='color: #94A3B8; font-size: 14px;'>Hybrid Intelligence Engine</p>
         </div>
     """, unsafe_allow_html=True)
