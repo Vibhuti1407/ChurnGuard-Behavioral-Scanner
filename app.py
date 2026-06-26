@@ -4,7 +4,7 @@ import pickle
 import plotly.express as px
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
 import nltk
-from analytics import inject_ga  
+from analytics import track_page_view
 
 # --- INITIALIZATION & THEME ---
 st.set_page_config(page_title="ChurnSentinel", layout="wide", page_icon="🛡️", initial_sidebar_state="collapsed")
@@ -102,7 +102,7 @@ st.title("🛡️ ChurnSentinel: Behavioral Risk Engine")
 
 # --- DEFINING PAGES FOR NAVIGATION ---
 def render_home():
-    inject_ga(page_title="ChurnSentinel - Home", page_path="/home")
+    track_page_view(page_title="ChurnSentinel - Home", page_path="/home")
    
     column1, column2 = st.columns([0.5,0.5])
     with column1: 
