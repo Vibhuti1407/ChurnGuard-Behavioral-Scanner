@@ -75,6 +75,10 @@ st.markdown("""
         margin-top: -15px !important;
         padding-top: 0px !important;
     }
+    div[data-testid="stHorizontalBlock"] a[data-testid="stPageLink"] p {
+        font-size: 16px !important; 
+        font-weight: 500 !important;
+    }
     </style>
     """, unsafe_allow_html=True)
 
@@ -97,8 +101,6 @@ metrics = assets['metrics']
 st.title("🛡️ SentinelAI: Behavioral Risk Engine")
 
 # --- DEFINING PAGES FOR NAVIGATION ---
-# Instead of passing "app.py" into itself (which causes a loading loop), 
-# we point the Home page to a Python function inside this file!
 def render_home():
     inject_ga(page_title="SentinelAI - Home", page_path="/home")
    
