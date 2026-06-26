@@ -3,7 +3,7 @@ import uuid
 import requests
 import time
 
-def track_page_view(page_title: str):
+def track_page_view(page_title: str, page_path: str):
     api_secret = "A2DX9eAyS6eSSFGR1I8ZQQ" 
     measurement_id = "G-PB79XNJY9X"
     
@@ -21,6 +21,8 @@ def track_page_view(page_title: str):
     # Trigger tracking call ONLY when a new page tab is actually rendered or switched
     if st.session_state.last_tracked_page != page_title:
         url = f"https://www.google-analytics.com/mp/collect?measurement_id={measurement_id}&api_secret={api_secret}"
+
+        base_url = "https://churnsentinel.streamlit.app"
         
         payload = {
             "client_id": st.session_state.ga_client_id,
@@ -28,6 +30,8 @@ def track_page_view(page_title: str):
                 "name": "page_view",
                 "params": {
                     "page_title": page_title,
+                    "page_path": page_path,
+                    "page_location": f"{base_url}{page_path}",
                     "session_id": st.session_state.ga_session_id,
                     "engagement_time_msec": "100"
                 }
