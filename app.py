@@ -37,7 +37,7 @@ st.markdown("""
         padding-bottom: 2.5rem; 
     }
     h2, [data-testid="stHeader"] h2 {
-        font-size: 33px !important;     /* Compact layout size */
+        font-size: 33px !important;     
         margin-top: 3px !important;
         margin-bottom: 3px !important;
     }    
@@ -76,7 +76,7 @@ st.markdown("""
         padding-top: 0px !important;
     }
     div[data-testid="stHorizontalBlock"] a[data-testid="stPageLink"] p {
-        font-size: 16px !important; /* <--- Change this line */
+        font-size: 16px !important; 
         font-weight: 500 !important;
     }
     </style>
@@ -102,7 +102,7 @@ st.title("🛡️ ChurnSentinel: Behavioral Risk Engine")
 
 # --- DEFINING PAGES FOR NAVIGATION ---
 def render_home():
-    track_page_view(page_title="ChurnSentinel - Home", page_path="/home")
+    track_page_view(page_title="ChurnSentinel - Home")
    
     column1, column2 = st.columns([0.5,0.5])
     with column1: 
