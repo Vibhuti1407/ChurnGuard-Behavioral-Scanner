@@ -2,9 +2,9 @@ import streamlit as st
 import pandas as pd
 import pickle
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
-from analytics import inject_ga
+from analytics import track_page_view
 
-inject_ga(page_title="ChurnSentinel - Individual Risk Checker", page_path="/individual-check")
+track_page_view(page_title="ChurnSentinel - Individual Risk Checker", page_path="/individual-check")
 st.markdown("<style>[data-testid='stSidebarNav'] { display: none !important; }</style>", unsafe_allow_html=True)
 
 home_page = st.Page("app.py")
