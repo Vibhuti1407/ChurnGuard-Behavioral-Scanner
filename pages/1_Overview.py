@@ -4,7 +4,7 @@ import pickle
 import plotly.express as px
 from analytics import inject_ga
 
-inject_ga(page_title="SentinelAI - Overview Dashboard", page_path="/overview")
+inject_ga(page_title="ChurnSentinel - Overview Dashboard", page_path="/overview")
 
 st.markdown("<style>[data-testid='stSidebarNav'] { display: none !important; }</style>", unsafe_allow_html=True)
 
