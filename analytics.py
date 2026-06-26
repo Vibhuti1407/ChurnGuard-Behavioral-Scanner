@@ -1,22 +1,36 @@
 import streamlit as st
-import streamlit.components.v1 as components
+import uuid
+import requests
 
-def inject_ga(page_title, page_path):
-    GA_MEASUREMENT_ID = "G-PB79XNJY9X" 
+def track_page_view(page_title: str):
+    api_secret = "A2DX9eAyS6eSSFGR1I8ZQQ" 
+    measurement_id = "G-PB79XNJY9X"
     
-    ga_js = f"""
-    <script async src="https://www.googletagmanager.com/gtag/js?id={GA_MEASUREMENT_ID}"></script>
-    <script>
-        window.dataLayer = window.dataLayer || [];
-        function gtag(){{dataLayer.push(arguments);}}
-        gtag('js', new Date());
+    # Track unique user sessions locally using streamlit session state
+    if "ga_client_id" not in st.session_state:
+        st.session_state.ga_client_id = str(uuid.uuid4())
+        
+    # Track the active viewed tab in state to ensure we only send one hit per tab change click
+    if "last_tracked_page" not in st.session_state:
+        st.session_state.last_tracked_page = None
 
-        // Explicitly set the page path and title for Streamlit's SPA layout
-        gtag('config', '{GA_MEASUREMENT_ID}', {{
-            'page_title': '{page_title}',
-            'page_path': '{page_path}'
-        }});
-    </script>
-    """
-    # Injects an invisible snippet to trigger GA without breaking the layout
-    components.html(ga_js, height=0, width=0)
+    # Trigger tracking call ONLY when a new page tab is actually rendered or switched
+    if st.session_state.last_tracked_page != page_title:
+        url = f"https://www.google-analytics.com/mp/collect?measurement_id={measurement_id}&api_secret={api_secret}"
+        
+        payload = {
+            "client_id": st.session_state.ga_client_id,
+            "events": [{
+                "name": "page_view",
+                "params": {
+                    "page_title": page_title,
+                    "engagement_time_msec": "1"
+                }
+            }]
+        }
+        
+        try:
+            requests.post(url, json=payload, timeout=2)
+            st.session_state.last_tracked_page = page_title  # Mark this page as tracked
+        except Exception:
+            pass # Silently pass if there's a network glitch
