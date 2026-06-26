@@ -2,9 +2,9 @@ import streamlit as st
 import pandas as pd
 import pickle
 import plotly.express as px
-from analytics import inject_ga
+from analytics import track_page_view
 
-inject_ga(page_title="ChurnSentinel - Overview Dashboard", page_path="/overview")
+track_page_view(page_title="ChurnSentinel - Overview Dashboard", page_path="/overview")
 
 st.markdown("<style>[data-testid='stSidebarNav'] { display: none !important; }</style>", unsafe_allow_html=True)
 
