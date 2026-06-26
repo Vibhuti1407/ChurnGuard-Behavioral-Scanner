@@ -5,7 +5,7 @@ import plotly.express as px
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
 from analytics import inject_ga
 
-inject_ga(page_title="SentinelAI - Bulk Batch Processing", page_path="/bulk-processing")
+inject_ga(page_title="ChurnSentinel - Bulk Batch Processing", page_path="/bulk-processing")
 st.markdown("<style>[data-testid='stSidebarNav'] { display: none !important; }</style>", unsafe_allow_html=True)
 
 home_page = st.Page("app.py")
@@ -94,7 +94,7 @@ if uploaded_file is not None:
                 st.download_button(
                     label="📥 Download Comprehensive Risk Report (CSV)",
                     data=csv,
-                    file_name=f'SentinelAI_Report_{pd.Timestamp.now().strftime("%Y%m%d")}.csv',
+                    file_name=f'ChurnSentinel_Report_{pd.Timestamp.now().strftime("%Y%m%d")}.csv',
                     mime='text/csv',
                     use_container_width=True
                 )                
