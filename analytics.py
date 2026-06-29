@@ -24,5 +24,4 @@ def track_page_view(page_title: str, page_path: str):
     """
     
     with st.container():
-        element_key = f"ga_tag_{page_title.replace(' ', '_').lower()}"
         components.html(html_code, height=0, width=0, key=element_key)
