@@ -23,5 +23,7 @@ def track_page_view(page_title: str, page_path: str):
     </script>
     """
     
+    # Wrap in a structural container to prevent multi-page layout engine errors
     with st.container():
-        components.html(html_code, height=0, width=0, key=element_key)
+        # Clean parameter footprint without the non-existent element_key variable
+        components.html(html_code, height=0, width=0)
