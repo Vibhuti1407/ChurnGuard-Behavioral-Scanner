@@ -19,4 +19,5 @@ def track_page_view(page_title: str):
     </script>
     """
     # Embed a hidden tracking iframe into the page container
-    components.html(html_code, height=0, width=0)
+    with st.container():
+        components.html(html_code, height=0, width=0)
