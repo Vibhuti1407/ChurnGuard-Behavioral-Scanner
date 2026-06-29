@@ -4,7 +4,7 @@ import pickle
 import plotly.express as px
 from analytics import track_page_view
 
-track_page_view(page_title="ChurnSentinel - Overview Dashboard")
+track_page_view(page_title="ChurnSentinel - Overview Dashboard", page_path="/overview")
 
 st.markdown("<style>[data-testid='stSidebarNav'] { display: none !important; }</style>", unsafe_allow_html=True)
 
