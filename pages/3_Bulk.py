@@ -6,7 +6,45 @@ from nltk.sentiment.vader import SentimentIntensityAnalyzer
 from analytics import track_page_view
 
 track_page_view(page_title="ChurnSentinel - Bulk Batch Processing", page_path="/bulk-processing")
-st.markdown("<style>[data-testid='stSidebarNav'] { display: none !important; }</style>", unsafe_allow_html=True)
+st.markdown("""
+    <style>
+    [data-testid='stSidebarNav'] { display: none !important; }
+    [data-testid="stFileUploaderDropzone"] {
+        background-color: #323740;
+        border: 2px solid #0E1117 !important;
+        border-radius: 10px;
+    }   
+    [data-testid="stFileUploaderDropzone"] button {
+        background-color: #0E1117 !important;
+        color: white !important;
+        border-radius: 5px;
+    }
+    [data-testid="stWidgetLabel"] p {
+        color: white;
+    }
+    [data-testid="stFileUploaderDropzoneInstructions"] > div > span {
+        color: white !important;
+    }
+    [data-testid="stMetricLabel"] {
+        color: white !important;
+    }
+    [data-testid="stMetricValue"] {
+        color: white !important;
+    }
+    @media (max-width: 768px) {
+    /* Adjust page margins for inner pages on mobile screen widths */
+    .block-container {
+        padding-left: 1rem !important;
+        padding-right: 1rem !important;
+    }
+    /* Forces columns to stack instead of flattening into tiny unreadable slivers */
+    div[data-testid="column"] {
+        width: 100% !important;
+        flex: 1 1 100% !important;
+    }
+}
+    </style>
+    """, unsafe_allow_html=True)
 
 home_page = st.Page("app.py")
 overview_page = st.Page("pages/1_Overview.py")
@@ -30,7 +68,8 @@ if uploaded_file is not None:
         st.error(f"Critical Error: CSV is missing required columns: {required_cols}")
     else:
         st.subheader("📋 Data Preview")
-        st.dataframe(df_batch.head(3), use_container_width=True)
+        styled_df = df_batch.style.map(lambda x: "background-color: black; color: white;")
+        df = st.dataframe(styled_df, use_container_width=True)
         
         if st.button("🚀 Execute Bulk Intelligence", type="primary", use_container_width=True):
             with st.status("Processing Batch Intelligence...", expanded=True) as status:
@@ -81,6 +120,7 @@ if uploaded_file is not None:
                                     color='Risk_Level',
                                     color_discrete_map={'CRITICAL': '#EF4444', 'WARNING': '#F59E0B', 'STABLE': '#10B981'},
                                     title="Revenue Distribution: Risk vs. Contract")
+                fig_sun.update_layout( plot_bgcolor="#0E1117", paper_bgcolor="#0E1117", title_font_color="white")
                 st.plotly_chart(fig_sun, use_container_width=True)
 
             with col_chart2:
@@ -95,6 +135,7 @@ if uploaded_file is not None:
                     label="📥 Download Comprehensive Risk Report (CSV)",
                     data=csv,
                     file_name=f'ChurnSentinel_Report_{pd.Timestamp.now().strftime("%Y%m%d")}.csv',
+                    type='primary',
                     mime='text/csv',
                     use_container_width=True
                 )                
