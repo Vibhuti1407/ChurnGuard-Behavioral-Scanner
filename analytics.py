@@ -26,7 +26,7 @@ def track_page_view(page_title: str, page_path: str):
     # --- 2. TRIGGER TRACKING LOGIC ---
     # Fire the tracker if it's a completely new session OR if the user switched tabs/pages
     if is_new_session or st.session_state.last_tracked_page != page_title:
-        url = f"https://www.google-analytics.com/mp/collect?measurement_id={measurement_id}&api_secret={api_secret}"
+        url = f"https://www.google-analytics.com/debug/mp/collect?measurement_id={measurement_id}&api_secret={api_secret}"
         
         # We build our array of events dynamically
         events_to_send = []
@@ -56,7 +56,7 @@ def track_page_view(page_title: str, page_path: str):
                 "page_path": page_path,
                 "page_location": f"{base_url}{page_path}",
                 "session_id": st.session_state.ga_session_id,
-                "engagement_time_msec": "100"
+                "engagement_time_msec": 100
             }
         })
         
