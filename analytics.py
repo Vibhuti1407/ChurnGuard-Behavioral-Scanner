@@ -1,29 +1,45 @@
-# analytics.py
 import streamlit as st
-import streamlit.components.v1 as components
+import uuid
+import requests
+import time
 
 def track_page_view(page_title: str, page_path: str):
-    """Injects the GA4 tracking script safely into the browser layout container with explicit paths."""
+    api_secret = "A2DX9eAyS6eSSFGR1I8ZQQ" 
     measurement_id = "G-PB79XNJY9X"
-    base_url = "https://churnsentinel.streamlit.app"
     
-    html_code = f"""
-    <script async src="https://www.googletagmanager.com/gtag/js?id={measurement_id}"></script>
-    <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){{dataLayer.push(arguments);}}
-      gtag('js', new Date());
-      
-      // Explicitly tell GA4 what the parent page URL metrics are
-      gtag('config', '{measurement_id}', {{
-        'page_title': '{page_title}',
-        'page_path': '{page_path}',
-        'page_location': '{base_url}{page_path}'
-      }});
-    </script>
-    """
-    
-    # Wrap in a structural container to prevent multi-page layout engine errors
-    with st.container():
-        # Clean parameter footprint without the non-existent element_key variable
-        components.html(html_code, height=0, width=0)
+    # Track unique user sessions locally using streamlit session state
+    if "ga_client_id" not in st.session_state:
+        st.session_state.ga_client_id = str(uuid.uuid4())
+
+    if "ga_session_id" not in st.session_state:
+        st.session_state.ga_session_id = str(int(time.time()))
+        
+    # Track the active viewed tab in state to ensure we only send one hit per tab change click
+    if "last_tracked_page" not in st.session_state:
+        st.session_state.last_tracked_page = None
+
+    # Trigger tracking call ONLY when a new page tab is actually rendered or switched
+    if st.session_state.last_tracked_page != page_title:
+        url = f"https://www.google-analytics.com/mp/collect?measurement_id={measurement_id}&api_secret={api_secret}"
+
+        base_url = "https://churnsentinel.streamlit.app"
+        
+        payload = {
+            "client_id": st.session_state.ga_client_id,
+            "events": [{
+                "name": "page_view",
+                "params": {
+                    "page_title": page_title,
+                    "page_path": page_path,
+                    "page_location": f"{base_url}{page_path}",
+                    "session_id": st.session_state.ga_session_id,
+                    "engagement_time_msec": "100"
+                }
+            }]
+        }
+        
+        try:
+            requests.post(url, json=payload, timeout=2)
+            st.session_state.last_tracked_page = page_title  # Mark this page as tracked
+        except Exception:
+            pass # Silently pass if there's a network glitch
