@@ -4,7 +4,7 @@ import pickle
 import plotly.express as px
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
 import nltk
-from analytics import track_page_view
+from analytics import track_page_view  
 
 # --- INITIALIZATION & THEME ---
 st.set_page_config(page_title="ChurnSentinel", layout="wide", page_icon="🛡️", initial_sidebar_state="collapsed")
@@ -21,6 +21,12 @@ initialize_nltk()
 st.markdown("""
     <style>
     [data-testid="stSidebarNav"] { display: none !important; }
+    [data-testid="stHeader"] {
+        background-color: #0E1117 !important;
+        color: white;
+    }
+    
+    /* Responsive Desktop Layout Base Margins */
     .block-container { 
         padding-top: 1.7rem; 
         padding-bottom: 1rem; 
@@ -29,6 +35,10 @@ st.markdown("""
         max-width: 100%; 
     }
     .main { background-color: #f8f9fa; }
+    .stApp {
+        background-color: #0E1117;  
+        color: #FAFAFA;
+    }
     .stApp h1 { 
         color: white; 
         font-size: 50px; 
@@ -58,8 +68,7 @@ st.markdown("""
     }
     h1 { 
         color: #1e3a8a; 
-        font-family: 'Inter', 
-        sans-serif; 
+        font-family: 'Inter', sans-serif; 
     }
     div[data-testid="stMetric"] { 
         background-color: #0c0d0d; 
@@ -75,9 +84,53 @@ st.markdown("""
         margin-top: -15px !important;
         padding-top: 0px !important;
     }
-    div[data-testid="stHorizontalBlock"] a[data-testid="stPageLink"] p {
-        font-size: 16px !important; 
+    div.stPageLink a {
+        color: #FFFFFF !important; 
         font-weight: 500 !important;
+        text-decoration: none !important;
+    }
+    div.stPageLink a p {
+        color: #FFFFFF !important;
+        font-size: 16px !important;
+    }
+
+    /* =========================================================================
+       📱 MOBILE DEVICE OPTIMIZATIONS (Screen size less than 768px wide)
+       ========================================================================= */
+    @media (max-width: 768px) {
+        /* Reduce heavy page indentation on small phone viewports */
+        .block-container {
+            padding-left: 1rem !important;
+            padding-right: 1rem !important;
+            padding-top: 1rem !important;
+        }
+
+        /* Prevent your Top Title Text from wrapping aggressively */
+        .stApp h1 {
+            font-size: 28px !important;
+            padding-bottom: 1rem !important;
+        }
+
+        h2, [data-testid="stHeader"] h2 {
+            font-size: 22px !important;
+        }
+
+        h3 {
+            font-size: 18px !important;
+        }
+
+        /* Force your 5-column top navigation to become full-width stackable buttons */
+        div[data-testid="stHorizontalBlock"] {
+            display: flex !important;
+            flex-direction: column !important;
+            gap: 8px !important;
+        }
+
+        /* Clean up metric alignments */
+        div[data-testid="column"] {
+            width: 100% !important;
+            flex: 1 1 100% !important;
+        }
     }
     </style>
     """, unsafe_allow_html=True)
@@ -129,10 +182,10 @@ def render_home():
                 div[data-testid="stImage"] {
                     padding-top: 10px;
                     padding-bottom: 10px; 
-                    padding-left: 100px;
-                    padding-right: 0px; 
-                    width: 2900px;
-                    height:2600px;
+                    padding-left: 0px; /* Centered layout for responsive adjustments */
+                    margin: 0 auto;
+                    width: 100% !important; /* Scale dynamically */
+                    height: auto !important;
                 }
         #     </style>
         #     """, unsafe_allow_html=True)
