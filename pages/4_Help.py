@@ -2,7 +2,26 @@ import streamlit as st
 from analytics import track_page_view
 
 track_page_view(page_title="ChurnSentinel - Help Documentation", page_path="/help")
-st.markdown("<style>[data-testid='stSidebarNav'] { display: none !important; }</style>", unsafe_allow_html=True)
+st.markdown("""
+    <style>
+    [data-testid='stSidebarNav'] { display: none !important; }
+    div[data-testid="stExpander"] details[open] summary  {
+        background-color: #0E1117;
+    }
+    @media (max-width: 768px) {
+    /* Adjust page margins for inner pages on mobile screen widths */
+    .block-container {
+        padding-left: 1rem !important;
+        padding-right: 1rem !important;
+    }
+    /* Forces columns to stack instead of flattening into tiny unreadable slivers */
+    div[data-testid="column"] {
+        width: 100% !important;
+        flex: 1 1 100% !important;
+    }
+}
+    </style>
+    """, unsafe_allow_html=True)
 
 home_page = st.Page("app.py")
 overview_page = st.Page("pages/1_Overview.py")
@@ -27,5 +46,5 @@ with st.expander("What do the Risk Levels mean?"):
 
 with st.expander("CSV Requirements for Batch Upload"):
     st.write("Your CSV must contain the following columns:")
-    st.code("tenure, MonthlyCharges, Contract, Ticket_Text")
+    st.markdown("<span style='color:#F59E0B'>tenure, MonthlyCharges, Contract, Ticket_Text</span>", unsafe_allow_html=True)
     st.caption("Note: Contract values should be 0 (Month-to-month), 1 (One year), or 2 (Two year).")
