@@ -6,7 +6,29 @@ from analytics import track_page_view
 
 track_page_view(page_title="ChurnSentinel - Overview Dashboard", page_path="/overview")
 
-st.markdown("<style>[data-testid='stSidebarNav'] { display: none !important; }</style>", unsafe_allow_html=True)
+st.markdown("""
+    <style>
+    [data-testid='stSidebarNav'] { display: none !important; }
+    [data-testid="stMetricLabel"] {
+        color: white !important;
+    }
+    [data-testid="stMetricValue"] {
+        color: white !important;
+    }
+    @media (max-width: 768px) {
+    /* Adjust page margins for inner pages on mobile screen widths */
+    .block-container {
+        padding-left: 1rem !important;
+        padding-right: 1rem !important;
+    }
+    /* Forces columns to stack instead of flattening into tiny unreadable slivers */
+    div[data-testid="column"] {
+        width: 100% !important;
+        flex: 1 1 100% !important;
+    }
+}
+    </style>
+    """, unsafe_allow_html=True)
 
 # Re-Instantiate components maps
 home_page = st.Page("app.py")
@@ -36,16 +58,19 @@ with col_left:
     }).sort_values(by='Impact Score', ascending=True)
     
     fig_importance = px.bar(importance_df, x='Impact Score', y='Driver', orientation='h', title="What's Driving Churn?", color_discrete_sequence=['#EF4444'])
-    fig_importance.update_layout(showlegend=False, height=300)
+    fig_importance.update_layout(showlegend=False, height=300, plot_bgcolor="#0E1117", paper_bgcolor="#0E1117", title_font_color="white")
+    fig_importance.update_xaxes(title_font=dict(color='white'), tickfont=dict(color='white'))
+    fig_importance.update_yaxes(title_font=dict(color='white'), tickfont=dict(color='white'))
     st.plotly_chart(fig_importance, use_container_width=True)
 
 with col_right:
     st.subheader("📋 Retention Funnel")
     funnel_data = pd.DataFrame({"Stage": ["Total Users", "Monitored", "At Risk", "Critical"], "Value": [1000, 850, 240, 65]})
     fig_funnel = px.funnel(funnel_data, x='Value', y='Stage', color_discrete_sequence=['#1E3A8A'])
-    fig_funnel.update_layout(height=260, margin=dict(t=10, b=10, l=10, r=10))
+    fig_funnel.update_layout(height=260, margin=dict(t=10, b=10, l=10, r=10), plot_bgcolor="#0E1117", paper_bgcolor="#0E1117")
+    fig_funnel.update_yaxes(title_font=dict(color='white'), tickfont=dict(color='white'))
     st.plotly_chart(fig_funnel, use_container_width=True)
 
 st.markdown("---")
 st.markdown("#### 🚩 Current Business Alerts")
-st.info("**Insight:** Negative sentiment in 'Month-to-Month' contracts has increased by 15% this week. Focus retention efforts on this segment.")
+st.info(":blue[**Insight:** Negative sentiment in 'Month-to-Month' contracts has increased by 15% this week. Focus retention efforts on this segment.]")
