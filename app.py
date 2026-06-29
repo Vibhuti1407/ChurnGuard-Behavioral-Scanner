@@ -102,7 +102,7 @@ st.title("🛡️ ChurnSentinel: Behavioral Risk Engine")
 
 # --- DEFINING PAGES FOR NAVIGATION ---
 def render_home():
-    track_page_view(page_title="ChurnSentinel - Home", page_path="/home")
+    track_page_view(page_title="ChurnSentinel - Home")
    
     column1, column2 = st.columns([0.5,0.5])
     with column1: 
