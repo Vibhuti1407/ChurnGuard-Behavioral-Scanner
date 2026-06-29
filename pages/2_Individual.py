@@ -5,7 +5,50 @@ from nltk.sentiment.vader import SentimentIntensityAnalyzer
 from analytics import track_page_view
 
 track_page_view(page_title="ChurnSentinel - Individual Risk Checker", page_path="/individual-check")
-st.markdown("<style>[data-testid='stSidebarNav'] { display: none !important; }</style>", unsafe_allow_html=True)
+st.markdown("""
+    <style>
+    [data-testid='stSidebarNav'] { display: none !important; }
+    div[data-testid="stTextInput"] input {
+        color: white !important;          
+        background-color: #0E1117 !important; 
+    } 
+    [data-testid="stWidgetLabel"] p {
+        color: white !important;
+    }
+    div[data-baseweb="input"] input {
+        background-color: #0E1117 !important;
+        color: white !important;
+    }
+    div[data-baseweb="select"] > div {
+        background-color: #0E1117 !important;
+        color: white !important;
+    }
+    ul[data-testid="stSelectboxVirtualDropdown"] li {
+        background-color: #0E1117 !important;
+        color: white !important;
+    }
+    textarea {
+        color: white !important; 
+        background-color: #0E1117 !important; 
+        border: 2px solid #0E1117 !important;
+    }
+    div[data-testid="stExpander"] details[open] summary  {
+        background-color: #0E1117;
+    }
+    @media (max-width: 768px) {
+    /* Adjust page margins for inner pages on mobile screen widths */
+    .block-container {
+        padding-left: 1rem !important;
+        padding-right: 1rem !important;
+    }
+    /* Forces columns to stack instead of flattening into tiny unreadable slivers */
+    div[data-testid="column"] {
+        width: 100% !important;
+        flex: 1 1 100% !important;
+    }
+}
+    </style>
+    """, unsafe_allow_html=True)
 
 home_page = st.Page("app.py")
 overview_page = st.Page("pages/1_Overview.py")
