@@ -12,7 +12,7 @@ def track_page_view(page_title: str, page_path: str):
     # Replace these with your actual GA4 credentials if they differ
     api_secret = "A2DX9eAyS6eSSFGR1I8ZQQ" 
     measurement_id = "G-PB79XNJY9X"
-    base_url = "https://churnsentinel.streamlit.app"
+    base_url = "https://churnguard-behavioral-scanner.streamlit.app"
     
     # --- 1. INITIAL APP LAUNCH / NEW USER DETECTION ---
     # If ga_client_id doesn't exist in the current session state, this is a brand new visit
