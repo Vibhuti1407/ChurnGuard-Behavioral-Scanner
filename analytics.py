@@ -31,12 +31,24 @@ def track_page_view(page_title: str, page_path: str):
         # We build our array of events dynamically
         events_to_send = []
 
+        query_args = st.query_params
+        
+        # Always construct event parameters dynamically
+        campaign_params = {}
+        if "utm_source" in query_args:
+            campaign_params["campaign_source"] = query_args["utm_source"]
+        if "utm_medium" in query_args:
+            campaign_params["campaign_medium"] = query_args["utm_medium"]
+        if "utm_campaign" in query_args:
+            campaign_params["campaign_name"] = query_args["utm_campaign"]
+        
         if is_new_session:
             # Explicitly force GA4 to log a "New User" in your dashboard overview
             events_to_send.append({
                 "name": "first_visit",
                 "params": {
-                    "session_id": st.session_state.ga_session_id
+                    "session_id": st.session_state.ga_session_id,
+                    **campaign_params
                 }
             })
             
