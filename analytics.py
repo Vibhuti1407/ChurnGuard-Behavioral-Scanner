@@ -33,8 +33,8 @@ def track_page_view(page_title: str, page_path: str):
         # Live production endpoint (Corrected URL path structure)
         url = f"https://www.google-analytics.com/debug/mp/collect?measurement_id={MEASUREMENT_ID}&api_secret={API_SECRET}"        
 
-        response = requests.post(url, json=payload, timeout=2)
-        print("GA4 Validation Response:", response.text)
+        #response = requests.post(url, json=payload, timeout=2)
+        #print("GA4 Validation Response:", response.text)
 
         events_to_send = []
 
